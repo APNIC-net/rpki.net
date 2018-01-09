@@ -5175,6 +5175,17 @@ static int check_ta(rcynic_ctx_t *rc, X509 *x, const uri_t *uri,
   return 1;
 }
 
+/**
+ * Prefetch a specific rsync tree, to improve performance against
+ * repositories that use a flat structure.
+ */
+static int prefetch(rcynic_ctx_t *rc,
+                    const char *n)
+{
+  rsync_init(rc, n, NULL, NULL);
+  return 1;
+}
+
 
 
 /**
@@ -6006,9 +6017,10 @@ int main(int argc, char *argv[])
       goto done;
     }
 
-    if ((!name_cmp(val->name, "trust-anchor")         && !check_ta_cer(&rc, val->value)) ||
-	(!name_cmp(val->name, "trust-anchor-locator") && !check_ta_tal(&rc, val->value)))
-      goto done;
+    if ((!name_cmp(val->name, "prefetch")             && !prefetch(&rc, val->value)) ||
+        (!name_cmp(val->name, "trust-anchor")         && !check_ta_cer(&rc, val->value)) ||
+        (!name_cmp(val->name, "trust-anchor-locator") && !check_ta_tal(&rc, val->value)))
+       goto done;
   }
 
   if (*ta_dir.s != '\0' && !check_ta_dir(&rc, ta_dir.s))

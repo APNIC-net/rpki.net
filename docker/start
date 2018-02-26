@@ -1,0 +1,10 @@
+#!/bin/sh
+/etc/init.d/postgresql start
+apt-get install -y rpki-ca
+sed -i 's/#allowed-hosts.*/allowed-hosts = localhost/' /etc/rpki.conf
+sed -i 's/RSYNC_ENABLE=false/RSYNC_ENABLE=true/' /etc/default/rsync
+echo "127.0.0.1" `cat /etc/rpki.conf | grep '^rpkid_server_host' | sed 's/.*= //'` >> /etc/hosts
+/etc/init.d/rpki-ca start
+/etc/init.d/apache2 start
+/etc/init.d/rsync start
+/bin/bash

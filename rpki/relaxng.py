@@ -253,6 +253,11 @@ left_right = RelaxNGParser(r'''<?xml version="1.0" encoding="UTF-8"?>
       </attribute>
     </optional>
     <optional>
+      <attribute name="issue_ee">
+        <value>yes</value>
+      </attribute>
+    </optional>
+    <optional>
       <attribute name="publish_world_now">
         <value>yes</value>
       </attribute>
@@ -322,6 +327,16 @@ left_right = RelaxNGParser(r'''<?xml version="1.0" encoding="UTF-8"?>
       <ref name="ctl_set"/>
       <ref name="tenant_handle"/>
       <ref name="tenant_bool"/>
+      <optional>
+        <attribute name="ee_resources">
+          <data type="string" />
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="cn">
+          <data type="string" />
+        </attribute>
+      </optional>
       <ref name="tenant_payload"/>
     </element>
   </define>

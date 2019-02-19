@@ -1,0 +1,53 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+# Wrapper for 'rpkic issue_ee' which moves the result objects from
+# /tmp into the current working directory.
+
+sub usage
+{
+    print <<EOF;
+Usage: $0 {identity} {common-name} {resources}
+
+    {identity}: The identity handle to use for issuing the EE certificate.
+    {common-name}: The common name to use in the EE certificate.
+    {resources}: A single comma-separated string of IP/ASN resources
+                 that should be included in the EE certificate.
+
+Writes {common-name}.pem, {common-name}.pem.key and
+{common-name}.pem.crl (the current CRL of the issuing CA) to the
+current working directory.
+EOF
+
+    exit(10);
+}
+
+sub _system
+{
+    my ($cmd) = @_;
+
+    my $res = system($cmd);
+    if ($res != 0) {
+        die "Unable to execute command.";
+    }
+}
+
+my ($identity, $name, $resources) = @ARGV;
+if (not ($identity and $name and $resources)) {
+    usage();
+}
+
+_system("rpkic -i $identity issue_ee $name $resources");
+_system("mv /tmp/$name.der .");
+_system("mv /tmp/$name.key .");
+_system("mv /tmp/$name.crl .");
+_system("openssl x509 -inform DER -in $name.der -outform PEM -out $name.pem");
+_system("openssl rsa -inform DER -in $name.key -outform PEM -out $name.pem.key");
+_system("openssl crl -inform DER -in $name.crl -outform PEM -out $name.pem.crl");
+_system("rm $name.der");
+_system("rm $name.key");
+_system("rm $name.crl");
+
+1;

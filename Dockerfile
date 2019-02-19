@@ -28,6 +28,11 @@ RUN wget -q -O /etc/apt/trusted.gpg.d/rpki.gpg https://download.rpki.net/APTng/a
 RUN wget -q -O /etc/apt/sources.list.d/rpki.list https://download.rpki.net/APTng/rpki.xenial.list
 RUN apt-get update && apt-get install -d -y rpki-ca
 COPY docker/rsyncd.conf /etc/rsyncd.conf
+COPY rpki/irdb/zookeeper.py /
+COPY rpki/relaxng.py /
+COPY rpki/rpkic.py /
+COPY rpki/rpkidb/models.py /
+COPY rpki/issue-ee /
 RUN mkdir /rpki
 COPY docker/start /rpki
 

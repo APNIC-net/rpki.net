@@ -881,6 +881,22 @@ class main(Cmd):
 
         self.zoo.run_rpkid_now()
 
+    @parsecmd(argsubparsers,
+        cmdarg("cn", help = "common name for EE certificate"),
+        cmdarg("resources", help = "resources for EE certificate"))
+    def do_issue_ee(self, args):
+        """
+        Issue an EE certificate for the specified resources against
+        the first available CA, and write the EE certificate, its key,
+        and the CRL of the issuing CA to /tmp.
+
+        todo: this method (and the rest of the code in the associated
+        commit) is just proof-of-concept (i.e. a huge hack) for
+        testing of resource-tagged attestations, and shouldn't be
+        relied on for anything serious.
+        """
+
+        self.zoo.issue_ee(args.cn, args.resources)
 
     @parsecmd(argsubparsers)
     def do_up_down_rekey(self, args):

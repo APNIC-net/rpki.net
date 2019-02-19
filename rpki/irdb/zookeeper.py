@@ -1116,6 +1116,24 @@ class Zookeeper(object):
 
         return self._rpkid_tenant_control("run_now")
 
+    def issue_ee(self, cn, resources):
+        """
+        Issue an EE certificate for the specified resources against
+        the first available CA, and write the EE certificate, its key,
+        and the CRL of the issuing CA to /tmp.
+
+        todo: this method (and the rest of the code in the associated
+        commit) is just proof-of-concept (i.e. a huge hack) for
+        testing of resource-tagged attestations, and shouldn't be
+        relied on for anything serious.
+        """
+
+        q_msg = self.compose_left_right_query()
+        q_pdu = SubElement(q_msg, rpki.left_right.tag_tenant, action = "set", tenant_handle = self.handle)
+        q_pdu.set("issue_ee", "yes")
+        q_pdu.set("cn", cn)
+        q_pdu.set("ee_resources", resources)
+        return self.call_rpkid(q_msg)
 
     def publish_world_now(self):
         """

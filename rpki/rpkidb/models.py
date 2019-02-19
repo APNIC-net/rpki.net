@@ -338,6 +338,8 @@ class Tenant(models.Model):
             futures.append(self.serve_publish_world_now(rpkid = rpkid))
         if q_pdu.get("run_now"):
             futures.append(self.serve_run_now(rpkid = rpkid))
+        if q_pdu.get("issue_ee"):
+            futures.append(self.serve_issue_ee(rpkid = rpkid, ee_resources = q_pdu.get("ee_resources"), cn = q_pdu.get("cn")))
 
         yield futures
 
@@ -395,6 +397,49 @@ class Tenant(models.Model):
         rpkid.task_add(*tasks)
         yield [task.wait() for task in tasks]
 
+    @tornado.gen.coroutine
+    def serve_issue_ee(self, rpkid, ee_resources, cn):
+        """
+        Issue an EE certificate for the specified resources against
+        the first available CA, and write the EE certificate, its key,
+        and the CRL of the issuing CA to /tmp.
+
+        todo: this method (and the rest of the code in the associated
+        commit) is just proof-of-concept (i.e. a huge hack) for
+        testing of resource-tagged attestations, and shouldn't be
+        relied on for anything serious.
+        """
+
+        trace_call_chain()
+        now = rpki.sundial.now()
+
+        for ca_detail in CADetail.objects.filter(ca__parent__tenant = self, state = "active"):
+            ee_keypair = rpki.x509.RSA.generate()
+            ee_cert = ca_detail.issue_ee(
+                ca          = ca_detail.ca,
+                resources   = rpki.resource_set.resource_bag.from_str(ee_resources),
+                subject_key = ee_keypair.get_public(),
+                sia         = (None, None, ca_detail.ca.parent.sia_base, ca_detail.ca.parent.repository.rrdp_notification_uri),
+                notBefore   = now)
+            ee = rpki.rpkidb.models.EECertificate.objects.create(
+                tenant      = ca_detail.ca.parent.tenant,
+                ca_detail   = ca_detail,
+                cert        = ee_cert,
+                gski        = ee_keypair.gSKI())
+
+            cert_file = open("/tmp/" + cn + ".der", "w")
+            cert_file.write(ee_cert.get_DER())
+            cert_file.close()
+
+            key_file = open("/tmp/" + cn + ".key", "w")
+            key_file.write(ee_keypair.get_DER())
+            key_file.close()
+
+            crl_file = open("/tmp/" + cn + ".crl", "w")
+            crl_file.write(ca_detail.latest_crl.get_DER())
+            crl_file.close()
+
+            break
 
     def cron_tasks(self, rpkid):
         trace_call_chain()

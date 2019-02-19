@@ -4,6 +4,11 @@ apt-get install -y rpki-ca
 sed -i 's/#allowed-hosts.*/allowed-hosts = localhost/' /etc/rpki.conf
 sed -i 's/RSYNC_ENABLE=false/RSYNC_ENABLE=true/' /etc/default/rsync
 echo "127.0.0.1" `cat /etc/rpki.conf | grep '^rpkid_server_host' | sed 's/.*= //'` >> /etc/hosts
+mv /zookeeper.py /usr/lib/python2.7/dist-packages/rpki/irdb/
+mv /relaxng.py /usr/lib/python2.7/dist-packages/rpki/
+mv /rpkic.py /usr/lib/python2.7/dist-packages/rpki/
+mv /models.py /usr/lib/python2.7/dist-packages/rpki/rpkidb/
+mv /issue-ee /usr/sbin/
 /etc/init.d/rpki-ca start
 /etc/init.d/apache2 start
 /etc/init.d/rsync start
